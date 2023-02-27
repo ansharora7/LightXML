@@ -287,7 +287,7 @@ class LightXML(nn.Module):
 
                     if self.use_swa and step % self.swa_update_step == 0:
                         self.swa_step()
-                    break
+                    # break
 
                     bar.set_postfix(loss=loss.item())
                 elif self.group_y is None:

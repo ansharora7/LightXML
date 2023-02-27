@@ -76,5 +76,5 @@ elif [ "$1" = "eurlex4k" ]; then
         # python src/main.py --lr 1e-4 --epoch 20 --dataset eurlex4k --swa --swa_warmup 10 --swa_step 200 --batch 16  --bert roberta
         # python src/main.py --lr 1e-4 --epoch 20 --dataset eurlex4k --swa --swa_warmup 10 --swa_step 400 --batch 8 --update_count 2 --bert xlnet
     done
-    python src/ensemble.py --dataset eurlex4k
+    python src/ensemble_direct.py --model1 eurlex4k_t1 --dataset eurlex4k
 fi

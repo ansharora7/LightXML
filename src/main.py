@@ -113,8 +113,8 @@ def train(model, df, label_map):
 
         if max_only_p5 < p5:
             max_only_p5 = p5
-            # model.save_model(f'models/model-{get_exp_name()}_t1.bin')
-            model.save_model('models/model-eurlex4k.bin')
+            model.save_model(f'models/model-{get_exp_name()}.bin')
+            # model.save_model('models/model-eurlex4k.bin')
         if epoch >= args.epoch + 5 and max_only_p5 != p5:
             break
 
