@@ -60,7 +60,7 @@ elif [ "$1" = "amazoncat13k" ]; then
 
     python src/ensemble.py --dataset amazoncat13k
 elif [ "$1" = "wiki31k" ]; then
-    echo start $1
+    echo start $1{group_tree}
     python src/main.py --lr 1e-4 --epoch 30 --dataset wiki31k --swa --swa_warmup 10 --swa_step 300 --batch 16
     python src/main.py --lr 1e-4 --epoch 30 --dataset wiki31k --swa --swa_warmup 10 --swa_step 400 --batch 8 --update_count 2  --bert xlnet
     python src/main.py --lr 1e-4 --epoch 30 --dataset wiki31k --swa --swa_warmup 10 --swa_step 400 --batch 8 --update_count 2  --bert roberta
@@ -68,11 +68,13 @@ elif [ "$1" = "wiki31k" ]; then
     python src/ensemble.py --dataset wiki31k
 elif [ "$1" = "eurlex4k" ]; then
     echo start $1
-    for i in 1
+    
+    ##ADDED
+    for i in 0
     do
         # python src/main.py --lr 1e-4 --epoch 1 --dataset eurlex4k --swa --swa_warmup 4 --swa_step 3000 --batch 16 --max_len 512 --group_y_candidate_num 2000 --group_y_candidate_topk 10 --valid
-        python src/main.py --lr 1e-4 --epoch 1 --dataset eurlex4k --swa --swa_warmup 10 --swa_step 200 --batch 16  --group_y_group $i --valid
-        python src/main.py --lr 1e-4 --epoch 1 --dataset eurlex4k --swa --swa_warmup 10 --swa_step 200 --batch 16  --group_y_group $i --valid --eval_model
+        python src/main.py --lr 1e-4 --epoch 1 --dataset eurlex4k --swa --swa_warmup 10 --swa_step 200 --batch 16  --group_y_group $i
+        python src/main.py --lr 1e-4 --epoch 1 --dataset eurlex4k --swa --swa_warmup 10 --swa_step 200 --batch 16  --group_y_group $i --eval_model
         # python src/main.py --lr 1e-4 --epoch 20 --dataset eurlex4k --swa --swa_warmup 10 --swa_step 200 --batch 16  --bert roberta
         # python src/main.py --lr 1e-4 --epoch 20 --dataset eurlex4k --swa --swa_warmup 10 --swa_step 400 --batch 8 --update_count 2 --bert xlnet
     done

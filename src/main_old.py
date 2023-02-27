@@ -54,8 +54,7 @@ def train(model, df, label_map):
                            candidates_num=args.group_y_candidate_num)#, token_type_ids=token_type_ids)
         test_d = MDataset(df, 'test', tokenizer, label_map, args.max_len, 
                            candidates_num=args.group_y_candidate_num)#, token_type_ids=token_type_ids)
-        # print("DSBDJSBDJBSDJD")
-        # print(df)
+
         train_d.tokenizer = model.get_fast_tokenizer()
         test_d.tokenizer = model.get_fast_tokenizer()
 
@@ -66,7 +65,7 @@ def train(model, df, label_map):
         if args.valid:
             valid_d = MDataset(df, 'valid', tokenizer, label_map, args.max_len, group_y=group_y,
                                candidates_num=args.group_y_candidate_num)
-            validloader = DataLoader(valid_d, batch_size=8, num_workers=0, 
+            validloader = DataLoader(valid_d, batch_size=args.batch, num_workers=0, 
                                      shuffle=False)
     
     ##ADDED##        
@@ -113,8 +112,8 @@ def train(model, df, label_map):
 
         if max_only_p5 < p5:
             max_only_p5 = p5
-            # model.save_model(f'models/model-{get_exp_name()}_t1.bin')
-            model.save_model('models/model-eurlex4k.bin')
+            model.save_model(f'models/model-{get_exp_name()}.bin')
+
         if epoch >= args.epoch + 5 and max_only_p5 != p5:
             break
 
@@ -123,13 +122,18 @@ def get_exp_name():
     name = [args.dataset, '' if args.bert == 'bert-base' else args.bert]
     if args.dataset in ['wiki500k', 'amazon670k']:
         name.append('t'+str(args.group_y_group))
-      
+
     ##ADDED#
     if args.dataset in ['eurlex4k']:
         name.append('t'+str(args.group_y_group))
     ##ADDED#
 
     return '_'.join([i for i in name if i != ''])
+
+
+    
+
+    
 
 
 def init_seed(seed):
@@ -158,7 +162,7 @@ parser.add_argument('--swa_step', type=int, required=False, default=100)
 
 parser.add_argument('--group_y_group', type=int, default=0)
 parser.add_argument('--group_y_candidate_num', type=int, required=False, default=3000)
-#parser.add_argument('--group_y_candidate_num', type=int, required=False, default=100)
+# parser.add_argument('--group_y_candidate_num', type=int, required=False, default=100)
 parser.add_argument('--group_y_candidate_topk', type=int, required=False, default=10)
 
 parser.add_argument('--eval_step', type=int, required=False, default=20000)
@@ -180,7 +184,7 @@ if __name__ == '__main__':
     df, label_map = createDataCSV(args.dataset)
     if args.valid:
         train_df, valid_df = train_test_split(df[df['dataType'] == 'train'],
-                                              test_size=400,
+                                              test_size=4000,
                                               random_state=1240)
         df.iloc[valid_df.index.values, 2] = 'valid'
         print('valid size', len(df[df['dataType'] == 'valid']))

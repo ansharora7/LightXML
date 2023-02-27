@@ -287,7 +287,6 @@ class LightXML(nn.Module):
 
                     if self.use_swa and step % self.swa_update_step == 0:
                         self.swa_step()
-                    break
 
                     bar.set_postfix(loss=loss.item())
                 elif self.group_y is None:
@@ -306,8 +305,6 @@ class LightXML(nn.Module):
                     group_logits, candidates, logits = outputs
 
                     if mode == 'eval':
-                        print("BSJABDJSBJSBDS")
-                        print(len(batch))
                         labels = batch[3]
                         group_labels = batch[4]
 
