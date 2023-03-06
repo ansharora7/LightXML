@@ -106,10 +106,14 @@ class LightXML(nn.Module):
         out = torch.cat([outs[-i][:, 0] for i in range(1, self.feature_layers+1)], dim=-1)
         out = self.drop_out(out)
 
-        if(detach==True):
-            out = out.detach()
+        # if(detach==True):
+        #     out = out.detach()
 
         group_logits = self.l0(out)
+        
+        if(detach==True):
+            group_logits = group_logits.detach()
+        
         if self.group_y is None:
             logits = group_logits
             if is_training:
@@ -151,6 +155,9 @@ class LightXML(nn.Module):
         embed_weights = self.embed(candidates) # N, sampled_size, H
         emb = emb.unsqueeze(-1)
         logits = torch.bmm(embed_weights, emb).squeeze(-1)
+
+        if(detach==True):
+            logits = logits.detach()
 
         if is_training:
             loss_fn = torch.nn.BCEWithLogitsLoss()
