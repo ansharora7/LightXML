@@ -15,6 +15,7 @@ from tokenizers import BertWordPieceTokenizer
 from transformers import RobertaTokenizerFast
 
 ##ADDED##
+from torch.autograd import Variable
 from torch.nn.utils import spectral_norm
 ##ADDED##
 
@@ -111,8 +112,8 @@ class LightXML(nn.Module):
 
         group_logits = self.l0(out)
         
-        if(detach==True):
-            group_logits = group_logits.detach()
+        # if(detach==True):
+        #     group_logits = group_logits.detach()
         
         if self.group_y is None:
             logits = group_logits
@@ -151,17 +152,26 @@ class LightXML(nn.Module):
             labels = torch.stack(new_labels).cuda()
         candidates, group_candidates_scores =  torch.LongTensor(candidates).cuda(), torch.Tensor(group_candidates_scores).cuda()
 
+
+        if is_training:
+            loss_fn = torch.nn.BCEWithLogitsLoss()
+            meta_loss = loss_fn(group_logits, group_labels)
+
+        if(detach==True):
+            out = out.detach()
+            out = Variable(out, requires_grad=False)
+
         emb = self.l1(out)
         embed_weights = self.embed(candidates) # N, sampled_size, H
         emb = emb.unsqueeze(-1)
         logits = torch.bmm(embed_weights, emb).squeeze(-1)
 
-        if(detach==True):
-            logits = logits.detach()
+        # if(detach==True):
+        #     logits = logits.detach()
 
         if is_training:
             loss_fn = torch.nn.BCEWithLogitsLoss()
-            loss = loss_fn(logits, labels) + loss_fn(group_logits, group_labels)
+            loss = loss_fn(logits, labels) + meta_loss            
             return logits, loss
         else:
             candidates_scores = torch.sigmoid(logits)

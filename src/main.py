@@ -92,7 +92,7 @@ def train(model, df, label_map):
     model, optimizer = amp.initialize(model, optimizer, opt_level="O1")
 
     max_only_p5 = 0
-    for epoch in range(0, args.epoch+5):
+    for epoch in range(0, args.epoch):
         if epoch <= epoch/4:
 
             train_loss = model.one_epoch(epoch, trainloader, optimizer, mode='train',
