@@ -14,6 +14,10 @@ from transformers import XLNetTokenizer, XLNetModel, XLNetConfig
 from tokenizers import BertWordPieceTokenizer
 from transformers import RobertaTokenizerFast
 
+##ADDED##
+from torch.nn.utils import spectral_norm
+##ADDED##
+
 def get_bert(bert_name):
     if 'roberta' in bert_name:
         print('load roberta-base')
@@ -59,9 +63,14 @@ class LightXML(nn.Module):
             print('hidden dim:',  hidden_dim)
             print('label goup numbers:',  self.group_y_labels)
 
-            self.l0 = nn.Linear(self.feature_layers*self.bert.config.hidden_size, self.group_y_labels)
+            ##ADDED##
+            # self.l0 = nn.Linear(self.feature_layers*self.bert.config.hidden_size, self.group_y_labels)
+            self.l0 = spectral_norm(nn.Linear(self.feature_layers*self.bert.config.hidden_size, self.group_y_labels))
+            
             # hidden bottle layer
-            self.l1 = nn.Linear(self.feature_layers*self.bert.config.hidden_size, hidden_dim)
+            # self.l1 = nn.Linear(self.feature_layers*self.bert.config.hidden_size, hidden_dim)
+            self.l1 = spectral_norm(nn.Linear(self.feature_layers*self.bert.config.hidden_size, hidden_dim))
+            ##ADDED##
             self.embed = nn.Embedding(n_labels, hidden_dim)
             nn.init.xavier_uniform_(self.embed.weight)
         else:
@@ -85,7 +94,7 @@ class LightXML(nn.Module):
         return indices, candidates, candidates_scores
 
     def forward(self, input_ids, attention_mask, token_type_ids,
-                labels=None, group_labels=None, candidates=None):
+                labels=None, group_labels=None, candidates=None, detach=False):
         is_training = labels is not None
 
         outs = self.bert(
@@ -96,6 +105,10 @@ class LightXML(nn.Module):
 
         out = torch.cat([outs[-i][:, 0] for i in range(1, self.feature_layers+1)], dim=-1)
         out = self.drop_out(out)
+
+        if(detach==True):
+            out = out.detach()
+
         group_logits = self.l0(out)
         if self.group_y is None:
             logits = group_logits
@@ -219,7 +232,8 @@ class LightXML(nn.Module):
         return total, acc1, acc3, acc5
 
     def one_epoch(self, epoch, dataloader, optimizer,
-                  mode='train', eval_loader=None, eval_step=20000, log=None):
+                  mode='train', eval_loader=None, eval_step=20000, log=None, detach=False):
+        self.detach=detach
 
         bar = tqdm.tqdm(total=len(dataloader))
         p1, p3, p5 = 0, 0, 0
@@ -255,7 +269,7 @@ class LightXML(nn.Module):
                         inputs['group_labels'] = batch[4].cuda()
                         inputs['candidates'] = batch[5].cuda()
 
-                outputs = self(**inputs)
+                outputs = self(**inputs, detach=detach)
 
                 bar.update(1)
 
@@ -306,8 +320,8 @@ class LightXML(nn.Module):
                     group_logits, candidates, logits = outputs
 
                     if mode == 'eval':
-                        print("BSJABDJSBJSBDS")
-                        print(len(batch))
+                        # print("BSJABDJSBJSBDS")
+                        # print(len(batch))
                         labels = batch[3]
                         group_labels = batch[4]
 

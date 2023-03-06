@@ -92,15 +92,22 @@ def train(model, df, label_map):
     model, optimizer = amp.initialize(model, optimizer, opt_level="O1")
 
     max_only_p5 = 0
-    for epoch in range(0, args.epoch):
-        train_loss = model.one_epoch(epoch, trainloader, optimizer, mode='train',
-                                     eval_loader=validloader if args.valid else testloader,
-                                     eval_step=args.eval_step, log=LOG)
+    for epoch in range(0, args.epoch+5):
+        if epoch <= epoch/4:
+
+            train_loss = model.one_epoch(epoch, trainloader, optimizer, mode='train',
+                                        eval_loader=validloader if args.valid else testloader,
+                                        eval_step=args.eval_step, log=LOG, detach=True)
+        else:
+            train_loss = model.one_epoch(epoch, trainloader, optimizer, mode='train',
+                                        eval_loader=validloader if args.valid else testloader,
+                                        eval_step=args.eval_step, log=LOG)
 
         if args.valid:
             ev_result = model.one_epoch(epoch, validloader, optimizer, mode='eval')
         else:
             ev_result = model.one_epoch(epoch, testloader, optimizer, mode='eval')
+
 
         g_p1, g_p3, g_p5, p1, p3, p5 = ev_result
 
@@ -157,7 +164,7 @@ parser.add_argument('--swa_warmup', type=int, required=False, default=10)
 parser.add_argument('--swa_step', type=int, required=False, default=100)
 
 parser.add_argument('--group_y_group', type=int, default=0)
-parser.add_argument('--group_y_candidate_num', type=int, required=False, default=3000)
+parser.add_argument('--group_y_candidate_num', type=int, required=False, default=300)
 #parser.add_argument('--group_y_candidate_num', type=int, required=False, default=100)
 parser.add_argument('--group_y_candidate_topk', type=int, required=False, default=10)
 
